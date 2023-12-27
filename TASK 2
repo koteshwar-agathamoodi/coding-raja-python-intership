@@ -1,0 +1,89 @@
+#Budget tracker
+import json
+from datetime import datetime
+
+BUDGET_FILE = "budget.json"
+
+def loadBudget():
+    try:
+        with open(BUDGET_FILE, "r") as file:
+            budget = json.load(file)
+    except FileNotFoundError:
+        budget = {"income": 0, "expenses": []}
+    return budget
+
+def saveBudget(budget):
+    with open(BUDGET_FILE, "w") as file:
+        json.dump(budget, file, indent=2)
+
+def displayBudget(budget):
+    print("\nCurrent Budget:")
+    print(f"Income: ${budget['income']:.2f}")
+
+    if not budget['expenses']:
+        print("No expenses recorded.")
+    else:
+        print("Expenses:")
+        for expense in budget['expenses']:
+            print(f"  - {expense['category']}: ${expense['amount']:.2f}")
+
+    remainingBudget = budget['income'] - sum(expense['amount'] for expense in budget['expenses'])
+    print(f"Remaining Budget: ${remainingBudget:.2f}")
+
+def recordTransaction(category, amount, transactionType):
+    budget = loadBudget()
+    transaction = {"category": category, "amount": amount, "date": datetime.now().strftime("%Y-%m-%d")}
+    
+    if transactionType == 'expense':
+        budget['expenses'].append(transaction)
+    elif transactionType == 'income':
+        budget['income'] += amount
+
+    saveBudget(budget)
+    print(f"{transactionType.capitalize()} recorded successfully.")
+
+def analyzeExpenses(budget):
+    if not budget['expenses']:
+        print("No expenses recorded for analysis.")
+        return
+
+    expenseCategories = set(expense['category'] for expense in budget['expenses'])
+    print("\nExpense Analysis:")
+    
+    for category in expenseCategories:
+        total_amount = sum(expense['amount'] for expense in budget['expenses'] if expense['category'] == category)
+        print(f"  - {category}: ${total_amount:.2f}")
+
+def main():
+    print("Welcome to the Budget Tracker App!")
+    while True:
+        print("\nOptions:")
+        print("1. Display current budget")
+        print("2. Record an expense")
+        print("3. Record income")
+        print("4. Analyze expenses")
+        print("5. Exit")
+
+        choice = input("Enter your choice (1-5): ")
+
+        if choice == "1":
+            budget = loadBudget()
+            displayBudget(budget)
+        elif choice == "2":
+            category = input("Enter expense category: ")
+            amount = float(input("Enter expense amount: $"))
+            recordTransaction(category, amount, 'expense')
+        elif choice == "3":
+            amount = float(input("Enter income amount: $"))
+            recordTransaction('', amount, 'income')
+        elif choice == "4":
+            budget = loadBudget()
+            analyzeExpenses(budget)
+        elif choice == "5":
+            print("Exiting. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 5.")
+
+if __name__ == "__main__":
+    main()
