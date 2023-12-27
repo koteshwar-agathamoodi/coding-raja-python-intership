@@ -1,0 +1,97 @@
+#TO-DO List
+import json
+from datetime import datetime, timedelta
+
+TODO_FILE = "todo.json"
+
+def loadTasks():
+    try:
+        with open(TODO_FILE, "r") as file:
+            tasks = json.load(file)
+    except FileNotFoundError:
+        tasks = []
+    return tasks
+
+def saveTasks(tasks):
+    with open(TODO_FILE, "w") as file:
+        json.dump(tasks, file, indent=2)
+
+def displayTasks(tasks):
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    print("Task List:")
+    for i, task in enumerate(tasks, start=1):
+        print(f"{i}. {task['description']} (Priority: {task['priority']}, Due Date: {task['due_date']})")
+
+def addTask(description, priority, due_date):
+    tasks = loadTasks()
+    task = {"description": description, "priority": priority, "due_date": due_date}
+    tasks.append(task)
+    saveTasks(tasks)
+    print("Task added successfully.")
+
+def removeTask(taskIndex):
+    tasks = loadTasks()
+    if 1 <= taskIndex <= len(tasks):
+        removedTask = tasks.pop(taskIndex - 1)
+        saveTasks(tasks)
+        print(f"Task '{removedTask['description']}' removed successfully.")
+    else:
+        print("Invalid task index.")
+
+def markTaskComplete(taskIndex):
+    tasks = loadTasks()
+    if 1 <= taskIndex <= len(tasks):
+        tasks[taskIndex - 1]["status"] = "completed"
+        saveTasks(tasks)
+        print(f"Task marked as completed: '{tasks[taskIndex - 1]['description']}'.")
+    else:
+        print("Invalid task index.")
+
+def main():
+    print("Welcome to the To-Do List App!")
+    while True:
+        print("\nOptions:")
+        print("1. Display tasks")
+        print("2. Add a new task")
+        print("3. Remove a task")
+        print("4. Mark a task as completed")
+        print("5. Exit")
+
+        choice = input("Enter your choice (1-5): ")
+
+        if choice == "1":
+            tasks = loadTasks()
+            displayTasks(tasks)
+        elif choice == "2":
+            description = input("Enter task description: ")
+            priority = input("Enter priority (high/medium/low): ")
+            dueDateStr = input("Enter due date (YYYY-MM-DD): ")
+            
+            try:
+                dueDate = datetime.strptime(dueDateStr, "%Y-%m-%d")
+            except ValueError:
+                print("Invalid date format. Please use YYYY-MM-DD.")
+                continue
+
+            addTask(description, priority, dueDateStr)
+        elif choice == "3":
+            tasks = loadTasks()
+            displayTasks(tasks)
+            taskIndex = int(input("Enter the index of the task to remove: "))
+            removeTask(taskIndex)
+        elif choice == "4":
+            tasks = loadTasks()
+            displayTasks(tasks)
+            taskIndex = int(input("Enter the index of the task to mark as completed: "))
+            markTaskComplete(taskIndex)
+        elif choice == "5":
+            print("Exiting. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 5.")
+
+if __name__ == "__main__":
+    main()
